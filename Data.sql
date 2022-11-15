@@ -1,14 +1,7 @@
 CREATE TABLE Types
 (
     Id INT PRIMARY KEY,
-    Name VARCHAR(256) NOT NULL,
-    Vegetable BOOL,
-    Fruit BOOL,
-    Mushroom BOOL,
-    Meat BOOL,
-    Eggs BOOL,
-    Seafood BOOL,
-    Milk BOOL
+    Name VARCHAR(256) NOT NULL
 );
 
 CREATE TABLE UnitMeasures
@@ -21,8 +14,8 @@ CREATE TABLE Ingredients
 (
     Id INT PRIMARY KEY,
     Name VARCHAR(256) NOT NULL,
-    TypeId INT REFERENCES Types (Id),
-    UnitMeasureID INT REFERENCES UnitMeasures (Id)
+    TypeId INT REFERENCES Types (Id) NOT NULL,
+    UnitMeasureID INT REFERENCES UnitMeasures (Id) NOT NULL
 );
 
 CREATE TABLE Cuisines
@@ -31,21 +24,15 @@ CREATE TABLE Cuisines
     Name VARCHAR(256) NOT NULL
 );
 
-CREATE TABLE Steps
-(
-    Id INT PRIMARY KEY,
-    Text VARCHAR(1024) NOT NULL
-);
-
 CREATE TABLE Recipes
 (
     Id INT PRIMARY KEY,
     Name VARCHAR(256) NOT NULL,
     Information VARCHAR(256) NOT NULL,
-    CuisineID INT REFERENCES Cuisines (Id),
-    CountSteps INT,
-    FirstStepID INT REFERENCES Steps (Id),
-    CountLikes INT
+    CuisineID INT REFERENCES Cuisines (Id) NOT NULL,
+    CountSteps INT NOT NULL,
+    Steps VARCHAR(4048) NOT NULL,
+    CountLikes INT NOT NULL
 );
 
 CREATE TABLE Users
@@ -57,20 +44,20 @@ CREATE TABLE Users
 
 CREATE TABLE MatrixFridge
 (
-    UserID INT REFERENCES Users (Id),
-    IngredientsID VARCHAR(2048)
+    UserID INT PRIMARY KEY,
+    IngredientsID VARCHAR(2048) NOT NULL
 );
 
 CREATE TABLE MatrixIngredients
 (
-    RecipeID INT REFERENCES Recipes (Id),
-    IngredientsID VARCHAR(2048)
+    RecipeID INT PRIMARY KEY,
+    IngredientsID VARCHAR(2048) NOT NULL
 );
 
 CREATE TABLE MatrixFavorite
 (
-    UserID INT REFERENCES Users (Id),
-    RecipesID VARCHAR(1024)
+    UserID INT PRIMARY KEY,
+    RecipesID VARCHAR(1024) NOT NULL
 );
 
 

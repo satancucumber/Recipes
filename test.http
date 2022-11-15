@@ -1,0 +1,6 @@
+POST /localhost:5000/
+
+{
+   "user_name" : 'admin',
+   "user_pass" : 'adminadmin'
+}
