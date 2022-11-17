@@ -1,63 +1,65 @@
 CREATE TABLE Types
 (
-    Id INT PRIMARY KEY,
+    Id SERIAL PRIMARY KEY,
     Name VARCHAR(256) NOT NULL
 );
 
 CREATE TABLE UnitMeasures
 (
-    Id INT PRIMARY KEY,
+    Id SERIAL PRIMARY KEY,
     Name VARCHAR(256) NOT NULL
 );
 
 CREATE TABLE Ingredients
 (
-    Id INT PRIMARY KEY,
+    Id SERIAL PRIMARY KEY,
     Name VARCHAR(256) NOT NULL,
-    TypeId INT REFERENCES Types (Id) NOT NULL,
-    UnitMeasureID INT REFERENCES UnitMeasures (Id) NOT NULL
+    TypeId INT REFERENCES Types (Id) NOT NULL DEFAULT 1,
+    UnitMeasureID INT REFERENCES UnitMeasures (Id) NOT NULL DEFAULT 1
 );
 
 CREATE TABLE Cuisines
 (
-    Id INT PRIMARY KEY,
+    Id SERIAL PRIMARY KEY,
     Name VARCHAR(256) NOT NULL
 );
 
 CREATE TABLE Recipes
 (
-    Id INT PRIMARY KEY,
+    Id SERIAL PRIMARY KEY,
     Name VARCHAR(256) NOT NULL,
-    Information VARCHAR(256) NOT NULL,
+    Information VARCHAR(256),
     CuisineID INT REFERENCES Cuisines (Id) NOT NULL,
-    CountSteps INT NOT NULL,
+    CountSteps INT NOT NULL DEFAULT 1,
     Steps VARCHAR(4048) NOT NULL,
-    CountLikes INT NOT NULL
+    CountLikes INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE Users
 (
-    Id INT PRIMARY KEY,
+    Id SERIAL PRIMARY KEY,
     UserName VARCHAR(256) NOT NULL,
     UserPassword VARCHAR(256) NOT NULL
 );
 
 CREATE TABLE MatrixFridge
 (
-    UserID INT PRIMARY KEY,
+    UserID SERIAL PRIMARY KEY,
     IngredientsID VARCHAR(2048) NOT NULL
 );
 
 CREATE TABLE MatrixIngredients
 (
-    RecipeID INT PRIMARY KEY,
+    RecipeID SERIAL PRIMARY KEY,
     IngredientsID VARCHAR(2048) NOT NULL
 );
 
 CREATE TABLE MatrixFavorite
 (
-    UserID INT PRIMARY KEY,
-    RecipesID VARCHAR(1024) NOT NULL
+    UserID SERIAL PRIMARY KEY,
+    RecipesID VARCHAR(2048) NOT NULL
 );
+
+
 
 
