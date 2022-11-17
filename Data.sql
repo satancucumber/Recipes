@@ -61,7 +61,7 @@ CREATE TABLE MatrixFavorite
 );
 
 
-INSERT INTO Types
+INSERT INTO Types (Id, Name)
 VALUES
        ("Овощи"),
        ("Фрукты"),
