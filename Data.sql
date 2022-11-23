@@ -75,7 +75,7 @@ VALUES
        ('Молочные продукты'),
        ('Яйца'),
        ('Морепродукты'),
-       ('Мясо');
+       ('Мясо')
 
 INSERT INTO UnitMeasures (Name)
 VALUES
@@ -86,7 +86,7 @@ VALUES
        ('ст. л'),
        ('ч. л'),
        ('ст'),
-       ('по вкусу');
+       ('по вкусу')
 
 INSERT INTO Ingredients (Name, TypeId, UnitMeasureID)
 VALUES
@@ -94,32 +94,32 @@ VALUES
        ('Хлеб', 4, 1),
        ('Чеснок', 6, 8),
        ('Сливочное масло', 10, 2),
-       ('Растительное масло', 8, 8);
+       ('Растительное масло', 8, 8)
 
 INSERT INTO Cuisines (Name)
 VALUES
-       ('Домашняя');
+       ('Домашняя')
 
 INSERT INTO MatrixFavorite (RecipesID)
 VALUES
        ('0;0;0'),
-       ('0;0;1');
+       ('0;0;1')
 
 INSERT INTO MatrixFridge (IngredientsID)
 VALUES
        ('0;0;0;0;0'),
-       ('0;0;0;0;0');
+       ('0;0;0;0;0')
 
 INSERT INTO MatrixIngredients (IngredientsID)
 VALUES
        ('30;1;0;0;1'),
        ('30;1;10;0;1'),
-       ('0;1;0;1;1');
+       ('0;1;0;1;1')
 
 INSERT INTO Users (UserName, UserPassword)
 VALUES
        ('admin', 'adminadmin'),
-       ('Gleb', 'secretpassword');
+       ('Gleb', 'secretpassword')
 
 INSERT INTO Recipes (Name, Information, CuisineID, CountSteps, Steps)
 VALUES
