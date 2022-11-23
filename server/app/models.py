@@ -31,8 +31,8 @@ class UnitMeasure(BaseModel):
 class Ingredient(BaseModel):
     id = AutoField(column_name='id')
     name = CharField(column_name='name')
-    typeid = ForeignKeyField(Type, to_field='id')
-    unitmeasureid = ForeignKeyField(UnitMeasure, to_field='id')
+    typeid = IntegerField(column_name='typeid')
+    unitmeasureid = IntegerField(column_name='unitmeasureid')
     class Meta:
         table_name = 'ingredients'
 
@@ -46,7 +46,7 @@ class Recipe(BaseModel):
     id = AutoField(column_name='id')
     name = CharField(column_name='name')
     inf = CharField(column_name='information', null=True)
-    cuisineid = ForeignKeyField(Cuisine, to_field='id')
+    cuisineid = IntegerField(column_name='cuisineid')
     countsteps = IntegerField(column_name='countsteps')
     steps = CharField(column_name='steps')
     countlikes = IntegerField(column_name='countlikes')
@@ -61,19 +61,19 @@ class User(BaseModel):
         table_name = 'users'
 
 class StrFridge(BaseModel):
-    userid = AutoField(column_name='id')
+    userid = AutoField(column_name='userid')
     ingredientsid = CharField(column_name='ingredientsid')
     class Meta:
         table_name = 'matrixfridge'
 
 class StrIngredient(BaseModel):
-    recipeid = AutoField(column_name='id')
+    recipeid = AutoField(column_name='recipeid')
     ingredientsid = CharField(column_name='ingredientsid')
     class Meta:
         table_name = 'matrixingredients'
 
 class StrFavorite(BaseModel):
-    id = AutoField(column_name='userid')
+    userid = AutoField(column_name='userid')
     recipesid = CharField(column_name='recipesid')
     class Meta:
         table_name = 'matrixfavorite'
@@ -98,9 +98,9 @@ def object(table):
 
 def cnt(table):
     query = object(table)
-    cnt = 0
     table_selected = query.dicts().execute()
-    for value in table_selected:
+    cnt = 0
+    for value in table_selected:            # {"id" = 1, "name" = "admin", "password" = "adminadmin"}
         cnt += 1
     return cnt
 
@@ -109,42 +109,39 @@ def cnt(table):
 def fridge_to_matrix():
     query = StrFridge.select()
     str_selected = query.dicts().execute()
-    count = cnt("ingredient")
-    matrix = [[0] * count] * cnt("user")
+    matrix = [[0]] * cnt("user")
     for str in str_selected:
-        ingredientsid = str["ingredientsid"].split(';')
-        for i in range(count):
-            matrix[str["id"] - 1][i] = int(ingredientsid[i])  # id start with 1; index start with 0
+        ingredientsid = list(map(int, str["ingredientsid"].split(';')))
+        matrix[str["userid"] - 1] = ingredientsid  # id start with 1; index start with 0
     return matrix
 def ingredient_to_matrix():
     query = StrIngredient.select()
     str_selected = query.dicts().execute()
-    count = cnt("ingredient")
-    matrix = [[0] * count] * cnt("recipe")
+    matrix = [[0]] * cnt("recipe")
     for str in str_selected:
-        ingredientsid = str["ingredientsid"].split(';')
-        for i in range(count):
-            matrix[str["id"] - 1][i] = int(ingredientsid[i])  # id start with 1; index start with 0
+        ingredientsid = list(map(int, str["ingredientsid"].split(';')))
+        matrix[str["recipeid"] - 1] = ingredientsid  # id start with 1; index start with 0
     return matrix
 def favorite_to_matrix():
     query = StrFavorite.select()
     str_selected = query.dicts().execute()
-    count = cnt("ingredient")
-    matrix = [[0]*count]*cnt("user")
-    for str in str_selected:
-        recipesid = str["recipesid"].split(';')
-        for i in range(count):
-            matrix[str["id"]-1][i] = int(recipesid[i])   #id start with 1; index start with 0
+    matrix = [[0]]*cnt("user")
+    for str in str_selected:      # {"userid" : 1, "recipesid" :}
+        recipesid = list(map(int, str["recipesid"].split(';')))
+        matrix[str["userid"]-1] = recipesid   #id start with 1; index start with 0
     return matrix
 
+
+
 def new_user():
-    StrFridge.create(ingredientsid = ";".join('0' * cnt("ingredient")))
-    StrFavorite.create(recipesid = ";".join('0' * cnt("recipe")))
+    StrFridge.create(ingredientsid = ";".join(['0'] * cnt("ingredient")))
+    StrFavorite.create(recipesid = ";".join(['0'] * cnt("recipe")))
     return 0
+#new_user()
 def new_recipe(data): # data = "cnt_id;id;cnt;id;cnt;..."
-    input = data.split(";")
+    input = data.split(";")   # ["7", "1", "10", ...]
     cnt_id = int(input.pop(0))
-    new = ['0']*cnt("ingredient")
+    new = ['0']*cnt("ingredient")  # ['0', ...]
     for i in range(cnt_id):
         new[int(input[i*2])-1] = int(input[i*2+1])
     StrIngredient.create(ingredientsid = ";".join(new))
@@ -165,7 +162,6 @@ def search_name(table, data):  # data = "name"
         if user["name"] == data:
             return user
     return -1
-
 def search_id(table, data):  #data = int id
     query = object(table)
     table_selected = query.dicts().execute()
@@ -195,6 +191,5 @@ def search_id(table, data):  #data = int id
 
 #user = User.get(User.id == 3)
 #print(user)
-
 
 

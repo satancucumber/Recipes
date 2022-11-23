@@ -1,10 +1,10 @@
 import requests
-url = "http://127.0.0.1:5000/api/v1/type"
-request = {"name" : "", "password" : "adminadmin"}
+url = "http://127.0.0.1:5000/api/v1/login"
+request = {"name" : "Mila", "password" : "toastwithcucumber", "repeat" : "toastwithcucumber"}
 
-#r = requests.post(url, json = request)
+r = requests.post(url, json=request)
 
-r = requests.get(url, type_id = 1)
+#r = requests.get(url, type_id = 1)
 
 print(r.content.decode())
 print(r)
@@ -12,9 +12,11 @@ print(r)
 #cnt = int(a.pop(0))
 #print(cnt, a)
 #a = ";".join(a)
+
+
 '''
 cnt = 10
-data = "5;5;68;3;40;2;9;4;30;8;45"
+data = "5;5;68;3;40;1;9;4;30;8;45"
 input = data.split(";")
 print(input)
 cnt_id = int(input.pop(0))

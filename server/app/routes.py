@@ -1,7 +1,7 @@
 #from flask import Flask, render_template, session, redirect, url_for, escape, request, jsonify, abort
 from flask import Flask, jsonify, request, abort, render_template
 from server.app import app
-from flask_restful import Resource, Api
+from flask_restful import Resource, Api, reqparse
 from server.app.models import *
 api = Api(app)
 
@@ -10,17 +10,20 @@ class index(Resource):
         return "Hello, Word!"
 
 class user(Resource):
-    def get(self, id, name, password):
+    def get(self):
         query = User.select()
         user_selected = query.dicts().execute()
+        id = request.args.get('id')
+        name = request.args.get('name')
+        password = request.args.get('password')
         if id:
-            return search_id("user", id)
+            return search_id("user", int(id))
         elif name and password:
             for user in user_selected:
-                if user["id"] == name:
+                if user["name"] == name:
                     if user["password"] == password:
                         return "You login!"
-                return "Invalid password!"
+                    return "Invalid password!"
             return "Invalid username!"
         else:
             users = []
@@ -31,20 +34,21 @@ class user(Resource):
     def post(self):
         query = User.select()
         user_selected = query.dicts().execute()
-        data = request.get_json()  # {"name" : "Mila", "password" : "ilikekittys", "replay" : "ilikekittys"}
+        data = request.get_json()  # {"name" : "Mila", "password" : "ilikekittys", "repeat" : "ilikekittys"}
         for user in user_selected:
             if user['name'] == data['name']:
                 return "A user with this name already exists!"
-        if data['password'] == data['replay']:
+        if data['password'] == data['repeat']:
             new_user()
             User.create(name=data['name'], password=data['password'])
             return "You are registered!"
         return "Passwords don't match!"
 
 class type(Resource):
-    def get(self, type_id):   #data = "search words"
+    def get(self):
+        type_id = request.args.get('type_id')
         if type_id:
-            return search_id("type", type_id)
+            return search_id("type", int(type_id))
         query = Type.select()
         type_selected = query.dicts().execute()
         output = []
@@ -52,8 +56,12 @@ class type(Resource):
             output.append(type)
         return output
 
+
 class ingredient(Resource):
-    def get(self, id, name, type_id):
+    def get(self):
+        id = request.args.get('id')
+        name = request.args.get('name')
+        type_id = request.args.get('type_id')
         query = Ingredient.select()
         ing_selected = query.dicts().execute()
         output = []
@@ -61,12 +69,12 @@ class ingredient(Resource):
             return search_id("ingredient", id)
         if name and type_id:
             for ing in ing_selected:
-                if ing["typeid"] == type_id and name in ing["name"]:
+                if ing["typeid"] == int(type_id) and name in ing["name"]:
                     output.append(ing)
             return output
         if type_id:
             for ing in ing_selected:
-                if ing["typeid"] == type_id:
+                if ing["typeid"] == int(type_id):
                     output.append(ing)
             return output
         if name:
@@ -126,9 +134,9 @@ class favorite(Resource):
 '''
 
 api.add_resource(index, '/')
-api.add_resource(user, '/api/v1/login')
-api.add_resource(type, '/api/v1/type')
-api.add_resource(ingredient, '/api/v1/ingredient')
+api.add_resource(user, '/api/v1/login', endpoint='login')
+api.add_resource(type, '/api/v1/type', endpoint='type')
+api.add_resource(ingredient, '/api/v1/ingredient', endpoint='ingredient')
 
 
 '''
