@@ -107,10 +107,7 @@ class recipe(Resource):
                     output.append(rec)
             return output                     #records by name and cuisine_id
         if name:
-            for rec in recipe_selected:
-                if name in rec["name"]:
-                    output.append(rec)
-            return output                 #records by name
+            return search_substring("recipe", name)                 #records by name
         if cuisine_id:
             for rec in recipe_selected:
                 if rec["cuisineid"] == int(cuisine_id):
