@@ -80,10 +80,10 @@ class ingredient(Resource):
         return output                #all records
 
     def post(self):
-        data = request.get_json()   # {"name" : "Огурец", "typeid" = 1}
+        data = request.get_json()   # {"name" : "Огурец", "typeid" = 1, "unitmeasureid" = 1}
         if search_name("ingredient", data["name"]) == -1:
             new_ingredient()
-            Ingredient.create(name=data["name"], typeid=data["typeid"])
+            Ingredient.create(name=data["name"], typeid=data["typeid"], unitmeasureid=data["unitmeasureid"])
             return "Ingredient post!"
         return "Such an ingredient already exists!"
 
@@ -98,6 +98,13 @@ class cuisine(Resource):
         for unit in unit_selected:
             output.append(unit)
         return output               #all records
+
+    def post(self):
+        data = request.get_json()   # {"name" : "Японская"}
+        if search_name("cuisine", data["name"]) == -1:
+            Cuisine.create(name=data["name"])
+            return "Cuisine post!"
+        return "Such an cuisine already exists!"
 
 class recipe(Resource):
     def get(self):
@@ -131,6 +138,15 @@ class recipe(Resource):
         for rec in recipe_selected:
             output.append(rec)
         return output      #all records
+
+    def post(self):
+        data = request.get_json()  # {"ingredients" : "2;6;1;2;1" ,"name" : "Тост с огурцом", "inf" : "Хрустящий хлеб с огурцом", "cuisineid" : 1, "countsteps" : 2, "steps" : "Пожарить хлеб с двух сторон до хрустящей корочки;Положить на хлеб порезанный огурец"}
+        if search_name("recipe", data["name"]) == -1:
+            new_recipe(data["ingredients"])
+            Recipe.create(name=data["name"], inf=data["inf"], cuisineid=data["cuisineid"], countsteps=data["countsteps"], steps=data["steps"])
+            return "Recipe post!"
+        return "Such an recipe already exists!"
+
 
 class user(Resource):
     def get(self):

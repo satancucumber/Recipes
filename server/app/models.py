@@ -143,15 +143,15 @@ def new_recipe(data): # data = "cnt_id;id;cnt;id;cnt;..."
     cnt_id = int(input.pop(0))
     new = ['0']*cnt("ingredient")  # ['0', ...]
     for i in range(cnt_id):
-        new[int(input[i*2])-1] = int(input[i*2+1])
+        new[int(input[i*2])-1] = input[i*2+1]
     StrIngredient.create(ingredientsid = ";".join(new))
-    query = StrFavorite.update(recipesid = StrFavorite.recipesid + ';0').where(StrFavorite.id > 0)  # добавляем новый рецепт в матрицу избранного
+    query = StrFavorite.update(recipesid = StrFavorite.recipesid + ';0')  # добавляем новый рецепт в матрицу избранного
     query.execute()
     return 0
 def new_ingredient():
-    query = StrIngredient.update(ingredientsid=StrIngredient.ingredientsid + ';0').where(StrIngredient.id > 0)  # добавляем новый ингредиент в матрицу ингредиентов
+    query = StrIngredient.update(ingredientsid=StrIngredient.ingredientsid + ";0")  # добавляем новый ингредиент в матрицу ингредиентов
     query.execute()
-    query = StrFridge.update(ingredientsid=StrFridge.ingredientsid + ';0').where(StrFridge.id > 0)  # добавляем новый ингредиент в матрицу холодильника
+    query = StrFridge.update(ingredientsid=StrFridge.ingredientsid + ";0")  # добавляем новый ингредиент в матрицу холодильника
     query.execute()
     return 0
 
