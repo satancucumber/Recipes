@@ -9,6 +9,123 @@ class index(Resource):
     def get(self):
         return "Hello, Word!"
 
+class type(Resource):
+    def get(self):
+        type_id = request.args.get('type_id')
+        if type_id:
+            return search_id("type", int(type_id))      #record by id
+        query = Type.select()
+        type_selected = query.dicts().execute()
+        output = []
+        for type in type_selected:
+            output.append(type)
+        return output                     #all records
+
+class unitmeasure(Resource):
+    def get(self):
+        id = request.args.get('id')
+        if id:
+            return search_id("unitmeasure", int(id))    #record by id
+        query = UnitMeasure.select()
+        unit_selected = query.dicts().execute()
+        output = []
+        for unit in unit_selected:
+            output.append(unit)
+        return output                         #all records
+
+class ingredient(Resource):
+    def get(self):
+        id = request.args.get('id')
+        name = request.args.get('name')
+        type_id = request.args.get('type_id')
+        user_id = request.args.get('user_id')
+        recipe_id = request.args.get('recipe_id')
+        query = Ingredient.select()
+        ing_selected = query.dicts().execute()
+        output = []
+        if id:
+            return search_id("ingredient", id)              #record by id
+        if name and type_id:
+            for ing in ing_selected:
+                if ing["typeid"] == int(type_id) and name in ing["name"]:
+                    output.append(ing)
+            return output                                 #records by name and type_id
+        if type_id:
+            for ing in ing_selected:
+                if ing["typeid"] == int(type_id):
+                    output.append(ing)
+            return output                             #records by type_id
+        if name:
+            for ing in ing_selected:
+                if name in ing["name"]:
+                    output.append(ing)
+            return output                       #records by name
+        if user_id:
+            user_str = fridge_to_matrix()[int(user_id)-1]
+            for ing in ing_selected:
+                if user_str[ing["id"]-1] != 0:
+                    output.append(ing)
+                    output.append(user_str[ing["id"]-1])
+            return output                                     #records by user_id
+        if recipe_id:
+            recipe_str = ingredient_to_matrix()[int(recipe_id) - 1]
+            for ing in ing_selected:
+                if recipe_str[ing["id"] - 1] != 0:
+                    output.append(ing)
+                    output.append(recipe_str[ing["id"] - 1])
+            return output                                  #ingredients with count for recipe with recipe_id
+        for ing in ing_selected:
+            output.append(ing)
+        return output                #all records
+
+class cuisine(Resource):
+    def get(self):
+        id = request.args.get('id')
+        if id:
+            return search_id("cuisine", int(id))   #record by id
+        query = Cuisine.select()
+        unit_selected = query.dicts().execute()
+        output = []
+        for unit in unit_selected:
+            output.append(unit)
+        return output               #all records
+
+class recipe(Resource):
+    def get(self):
+        id = request.args.get('id')
+        name = request.args.get('name')
+        cuisine_id = request.args.get('cuisine_id')
+        user_id = request.args.get('user_id')
+        query = Recipe.select()
+        recipe_selected = query.dicts().execute()
+        output = []
+        if id:
+            return search_id("recipe", int(id))         #record by id
+        if name and cuisine_id:
+            for rec in recipe_selected:
+                if rec["cuisineid"] == int(cuisine_id) and name in rec["name"]:
+                    output.append(rec)
+            return output                     #records by name and cuisine_id
+        if name:
+            for rec in recipe_selected:
+                if name in rec["name"]:
+                    output.append(rec)
+            return output                 #records by name
+        if cuisine_id:
+            for rec in recipe_selected:
+                if rec["cuisineid"] == int(cuisine_id):
+                    output.append(rec)
+            return output               #records by cuisine_id
+        if user_id:
+            user_str = favorite_to_matrix()[int(user_id) - 1]
+            for rec in recipe_selected:
+                if user_str[rec["id"] - 1] == 1:
+                    output.append(rec)
+            return output                   #favorite user with user_id
+        for rec in recipe_selected:
+            output.append(rec)
+        return output      #all records
+
 class user(Resource):
     def get(self):
         query = User.select()
@@ -17,7 +134,7 @@ class user(Resource):
         name = request.args.get('name')
         password = request.args.get('password')
         if id:
-            return search_id("user", int(id))
+            return search_id("user", int(id))        #record by id
         elif name and password:
             for user in user_selected:
                 if user["name"] == name:
@@ -29,7 +146,7 @@ class user(Resource):
             users = []
             for user in user_selected:
                 users.append(user)
-            return users
+            return users                 #all users
 
     def post(self):
         query = User.select()
@@ -44,99 +161,11 @@ class user(Resource):
             return "You are registered!"
         return "Passwords don't match!"
 
-class type(Resource):
-    def get(self):
-        type_id = request.args.get('type_id')
-        if type_id:
-            return search_id("type", int(type_id))
-        query = Type.select()
-        type_selected = query.dicts().execute()
-        output = []
-        for type in type_selected:
-            output.append(type)
-        return output
-
-
-class ingredient(Resource):
-    def get(self):
-        id = request.args.get('id')
-        name = request.args.get('name')
-        type_id = request.args.get('type_id')
-        query = Ingredient.select()
-        ing_selected = query.dicts().execute()
-        output = []
-        if id:
-            return search_id("ingredient", id)
-        if name and type_id:
-            for ing in ing_selected:
-                if ing["typeid"] == int(type_id) and name in ing["name"]:
-                    output.append(ing)
-            return output
-        if type_id:
-            for ing in ing_selected:
-                if ing["typeid"] == int(type_id):
-                    output.append(ing)
-            return output
-        if name:
-            for ing in ing_selected:
-                if name in ing["name"]:
-                    output.append(ing)
-            return output
-        for ing in ing_selected:
-            output.append(ing)
-        return output
-
-'''
-class recipe(Resource):
-    def get(self, id, name, user_id):
-        query = Recipe.select()
-        recipe_selected = query.dicts().execute()
-        for recipe in recipe_selected:
-            if recipe["id"] == recipe_id:
-                return recipe
-            abort(404)
-    def post(self):
-        query = Recipe.select()
-        recipe_selected = query.dicts().execute()
-        data = request.get_json() # {"ingredients" = "counting;id;count;..." ,"name" = "", "inf" = "", "cuisineid" = int, "countsteps" = int, "steps" = "", "countlikes" = int}
-        for recipe in query.dicts().execute():
-            if recipe["name"] == data["name"]:
-                abort(404)
-        Recipe.create(name=data["name"], inf=data["inf"], cuisineid=data["cuisineid"], steps=data["steps"], countlikes=0)
-        recipe = Recipe.get(Recipe.id == recipe["id"]+1)
-        query = StrFavorite.update(name=StrFavorite.recipesid + ';0').where(StrFavorite.id > 0)  #добавляем новый рецепт в матрицу избранного
-        query.execute()
-        StrIngredient.create(id=recipe.id)
-
-        return recipe
-class favorite(Resource):
-    def get(self, user_id):
-        query = Recipe.select()
-        recipe_selected = query.dicts().execute()
-        output = []
-        likes = favorite_to_matrix()[user_id-1]
-        for recipe in recipe_selected:
-            if likes[recipe["id"] - 1] != 0:
-                output.append(recipe)
-        if output == []:
-            abort(404)
-        return output
-    def put(self, user_id, recipe_id):
-        str = StrFavorite.get(StrFavorite.id == user_id)
-        change = str.recipesid
-        change = change.split(';')
-        if change[recipe_id-1] == '0':
-            change[recipe_id-1] = '1'
-        elif change[recipe_id-1] == '1':
-            change[recipe_id-1] = '0'
-        str.recipesid = ";".join(change)
-        str.save()
-'''
-
 api.add_resource(index, '/')
 api.add_resource(user, '/api/v1/login', endpoint='login')
 api.add_resource(type, '/api/v1/type', endpoint='type')
 api.add_resource(ingredient, '/api/v1/ingredient', endpoint='ingredient')
+api.add_resource(recipe, '/api/v1/recipe', endpoint='recipe')
 
 
 '''
