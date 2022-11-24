@@ -21,6 +21,7 @@ class type(Resource):
             output.append(type)
         return output                     #all records
 
+
 class unitmeasure(Resource):
     def get(self):
         id = request.args.get('id')
@@ -77,6 +78,14 @@ class ingredient(Resource):
         for ing in ing_selected:
             output.append(ing)
         return output                #all records
+
+    def post(self):
+        data = request.get_json()   # {"name" : "Огурец", "typeid" = 1}
+        if search_name("ingredient", data["name"]) == -1:
+            new_ingredient()
+            Ingredient.create(name=data["name"], typeid=data["typeid"])
+            return "Ingredient post!"
+        return "Such an ingredient already exists!"
 
 class cuisine(Resource):
     def get(self):

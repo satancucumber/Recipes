@@ -1,0 +1,10 @@
+FROM python:latest
+
+ADD server /server/
+
+RUN pip install Flask
+RUN pip install Flask-RESTful
+RUN pip install peewee
+
+
+WORKDIR /server/

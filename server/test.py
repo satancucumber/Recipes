@@ -1,6 +1,6 @@
 import requests
-url = "http://127.0.0.1:5000/api/v1/login"
-request = {"name" : "Mila", "password" : "toastwithcucumber", "repeat" : "toastwithcucumber"}
+url = "http://127.0.0.1:5000/api/v1/ingredient"
+request = {"name" : "Огурец", "typeid" : 1}
 
 r = requests.post(url, json=request)
 
