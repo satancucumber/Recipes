@@ -99,6 +99,26 @@ class ingredient(Resource):
             Ingredient.create(name=data["name"], typeid=data["typeid"], unitmeasureid=data["unitmeasureid"])
             return "Ingredient post!"
         return "Such an ingredient already exists!"
+    '''
+    def patch(self):
+        data = request.get_json()   # {"ingredientid" : 6, "user_id" : 1, "recipe_id" : 2, "new_count" = 2}
+        if "ingredientid" in data:
+            if "user_id" in data and "new_count" in data:
+                fridge = fridge_to_matrix()[data["user_id"]]
+                str_user = list(map(str, fridge))
+                str_user[data["ingredientid"]-1] = str(data["new_count"])
+                string = StrFridge(userid=data["user_id"])
+                string.ingredientsid = ";".join(str_user)
+                string.save()
+                return "Ingredient changed!"
+            if "recipe_id" in data and "new_count" in data:
+                str = StrIngredient(userid=data["recipe_id"])
+                str_recipe = str.ingredientsid.split(";")
+                str_recipe[data["ingredientid"] - 1] = data["new_count"]
+                str.ingredientsid = ";".join(str_recipe)
+                str.save()
+                return "Ingredient changed!"
+    '''
 
 class cuisine(Resource):
     def get(self):
@@ -160,6 +180,8 @@ class recipe(Resource):
             return "Recipe post!"
         return "Such an recipe already exists!"
 
+
+
 class user(Resource):
     def get(self):
         query = User.select()
@@ -194,6 +216,30 @@ class user(Resource):
             User.create(name=data['name'], password=data['password'])
             return "You are registered!"
         return "Passwords don't match!"
+
+    def patch(self):
+        query = User.select()
+        user_selected = query.dicts().execute()
+        data = request.get_json()  # {"name" : "Mila", "password" : "toastwithcucumber", "new_name" : "", "new_password" : "", "repeat" : ""}
+        if "name" in data and "password" in data:
+            for user in user_selected:
+                if user["name"] == data["name"]:
+                    if user["password"] == data["password"]:
+                        user_change = User(id=user["id"])
+                        if "new_name" in data:
+                            if search_name("user", data["new_name"]) == -1:
+                                user_change.name = data["new_name"]
+                                user_change.save()
+                                return "Name changed!"
+                            return "A user with this name already exists!"
+                        if "new_password" in data and "repeat" in data:
+                            if data["new_password"] == data["repeat"]:
+                                user_change.password = data["new_password"]
+                                user_change.save()
+                                return "Password changed!"
+                            return "Passwords don't match!"
+                    return "Invalid password!"
+            return "Invalid username!"
 
 api.add_resource(index, '/')
 api.add_resource(user, '/api/v1/login', endpoint='login')
