@@ -1,7 +1,6 @@
 import requests
-url = "http://127.0.0.1:5000/api/v1/recipe"
-request = {"ingredients" : "2;6;1;2;1" ,"name" : "Тост с огурцом", "inf" : "Хрустящий хлеб с огурцом", "cuisineid" : 1, "countsteps" : 2, "steps" : "Пожарить хлеб с двух сторон до хрустящей корочки;Положить на хлеб порезанный огурец"}
-
+url = "http://127.0.0.1:5000/api/v1/unitmeasure"
+request = {"name" : "уп"}
 r = requests.post(url, json=request)
 
 #r = requests.get(url, type_id = 1)

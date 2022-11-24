@@ -21,6 +21,12 @@ class type(Resource):
             output.append(type)
         return output                     #all records
 
+    def post(self):
+        data = request.get_json()   # {"name" : "Грибы"}
+        if search_name("type", data["name"]) == -1:
+            Type.create(name=data["name"])
+            return "Type post!"
+        return "Such an type already exists!"
 
 class unitmeasure(Resource):
     def get(self):
@@ -33,6 +39,13 @@ class unitmeasure(Resource):
         for unit in unit_selected:
             output.append(unit)
         return output                         #all records
+
+    def post(self):
+        data = request.get_json()   # {"name" : "уп"}
+        if search_name("unitmeasure", data["name"]) == -1:
+            UnitMeasure.create(name=data["name"])
+            return "Unit measure post!"
+        return "Such an unit measure already exists!"
 
 class ingredient(Resource):
     def get(self):
@@ -147,7 +160,6 @@ class recipe(Resource):
             return "Recipe post!"
         return "Such an recipe already exists!"
 
-
 class user(Resource):
     def get(self):
         query = User.select()
@@ -188,6 +200,8 @@ api.add_resource(user, '/api/v1/login', endpoint='login')
 api.add_resource(type, '/api/v1/type', endpoint='type')
 api.add_resource(ingredient, '/api/v1/ingredient', endpoint='ingredient')
 api.add_resource(recipe, '/api/v1/recipe', endpoint='recipe')
+api.add_resource(cuisine, '/api/v1/cuisine', endpoint='cuisine')
+api.add_resource(unitmeasure, '/api/v1/unitmeasure', endpoint='unitmeasure')
 
 
 '''
