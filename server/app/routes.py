@@ -1,13 +1,13 @@
 #from flask import Flask, render_template, session, redirect, url_for, escape, request, jsonify, abort
 from flask import Flask, jsonify, request, abort, render_template
-from server.app import app
+from server import app
 from flask_restful import Resource, Api, reqparse
 from server.app.models import *
 api = Api(app)
 
 class index(Resource):
     def get(self):
-        return "Hello, Word!"
+        return "Hello, World!"
 
 class type(Resource):
     def get(self):
@@ -23,10 +23,7 @@ class type(Resource):
 
     def post(self):
         data = request.get_json()   # {"name" : "Грибы"}
-        if search_name("type", data["name"]) == -1:
-            Type.create(name=data["name"])
-            return "Type post!"
-        return "Such an type already exists!"
+        return post_item("type", data)
 
 class unitmeasure(Resource):
     def get(self):
@@ -42,10 +39,7 @@ class unitmeasure(Resource):
 
     def post(self):
         data = request.get_json()   # {"name" : "уп"}
-        if search_name("unitmeasure", data["name"]) == -1:
-            UnitMeasure.create(name=data["name"])
-            return "Unit measure post!"
-        return "Such an unit measure already exists!"
+        return post_item("unitmeasure", data)
 
 class ingredient(Resource):
     def get(self):
@@ -65,15 +59,9 @@ class ingredient(Resource):
                     output.append(ing)
             return output                                 #records by name and type_id
         if type_id:
-            for ing in ing_selected:
-                if ing["typeid"] == int(type_id):
-                    output.append(ing)
-            return output                             #records by type_id
+            return search_typeid(type_id)                             #records by type_id
         if name:
-            for ing in ing_selected:
-                if name in ing["name"]:
-                    output.append(ing)
-            return output                       #records by name
+            return search_substring("ingredient", name)                       #records by name
         if user_id:
             user_str = fridge_to_matrix()[int(user_id)-1]
             for ing in ing_selected:
@@ -114,10 +102,7 @@ class cuisine(Resource):
 
     def post(self):
         data = request.get_json()   # {"name" : "Японская"}
-        if search_name("cuisine", data["name"]) == -1:
-            Cuisine.create(name=data["name"])
-            return "Cuisine post!"
-        return "Such an cuisine already exists!"
+        return post_item("cuisine", data)
 
 class recipe(Resource):
     def get(self):
