@@ -170,6 +170,16 @@ def search_id(table, data):  #data = int id
             return value
     return -1
 
+def search_substring(table, data):  # data = "name"
+    query = object(table)
+    user_selected = query.dicts().execute()
+    output = []
+    for user in user_selected:
+        if data in  user["name"]:
+            output.append(user)
+    if output != []:
+        return output
+    return -1
 
 
 
