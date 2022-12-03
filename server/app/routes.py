@@ -241,6 +241,11 @@ class user(Resource):
                     return "Invalid password!"
             return "Invalid username!"
 
+#class recomendation(Resource):
+#    def get(self):
+#        user_id = request.args.get('user_id')
+#        return rec(user_id)                   #input: user_id; output: [{}, {}, {}, ...]
+
 api.add_resource(index, '/')
 api.add_resource(user, '/api/v1/login', endpoint='login')
 api.add_resource(type, '/api/v1/type', endpoint='type')
@@ -248,7 +253,7 @@ api.add_resource(ingredient, '/api/v1/ingredient', endpoint='ingredient')
 api.add_resource(recipe, '/api/v1/recipe', endpoint='recipe')
 api.add_resource(cuisine, '/api/v1/cuisine', endpoint='cuisine')
 api.add_resource(unitmeasure, '/api/v1/unitmeasure', endpoint='unitmeasure')
-
+#api.add_resource(recimendation, '/api/v1/recimendation', endpoint='recimendation')
 
 '''
 @app.route('/')

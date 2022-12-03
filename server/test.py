@@ -1,12 +1,25 @@
 import requests
-url = "http://127.0.0.1:5000/api/v1/ingredient"
-request = {"ingredientid" : 6, "user_id" : 1, "new_count" : 2}  #  "recipe_id" : 2,
-r = requests.patch(url, json=request)
-
-#r = requests.get(url, type_id = 1)
+url = "http://127.0.0.1:5000/api/v1/login"
+request = {"name" : "Mila", "password" : "ilikekittys", "repeat" : "ilikekittys"}  #  "recipe_id" : 2,
+r = requests.post(url, json=request)
 
 print(r.content.decode())
 print(r)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #a = ['1', '2', '3', '4']
 #cnt = int(a.pop(0))
 #print(cnt, a)
