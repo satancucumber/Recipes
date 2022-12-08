@@ -173,10 +173,11 @@ class recipe(Resource):
         return output      #all records
 
     def post(self):
-        data = request.get_json()  # {"ingredients" : "2;6;1;2;1" ,"name" : "Тост с огурцом", "inf" : "Хрустящий хлеб с огурцом", "cuisineid" : 1, "countsteps" : 2, "steps" : "Пожарить хлеб с двух сторон до хрустящей корочки;Положить на хлеб порезанный огурец"}
+        data = request.get_json()  # {"ingredients" : "2;6;1;2;1" ,"name" : "Тост с огурцом", "inf" : "Хрустящий хлеб с огурцом", "cuisineid" : 1, "countsteps" : 2, "steps" : "Пожарить хлеб с двух сторон до хрустящей корочки*Положить на хлеб порезанный огурец"}
         if search_name("recipe", data["name"]) == -1:
             new_recipe(data["ingredients"])
-            Recipe.create(name=data["name"], inf=data["inf"], cuisineid=data["cuisineid"], countsteps=data["countsteps"], steps=data["steps"])
+            arraysteps = data["steps"].split("*")
+            Recipe.create(name=data["name"], inf=data["inf"], cuisineid=data["cuisineid"], countsteps=data["countsteps"], steps=arraysteps)
             return "Recipe post!"
         return "Such an recipe already exists!"
 
