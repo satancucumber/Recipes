@@ -31,7 +31,7 @@ CREATE TABLE Recipes
     Information VARCHAR(256),
     CuisineID INT REFERENCES Cuisines (Id) NOT NULL,
     CountSteps INT NOT NULL DEFAULT 1,
-    Steps VARCHAR(4048) NOT NULL,
+    Steps TEXT[] NOT NULL,
     CountLikes INT NOT NULL DEFAULT 0
 );
 
@@ -45,19 +45,19 @@ CREATE TABLE Users
 CREATE TABLE MatrixFridge
 (
     UserID SERIAL PRIMARY KEY,
-    IngredientsID VARCHAR(2048) NOT NULL
+    IngredientsID INT[] NOT NULL
 );
 
 CREATE TABLE MatrixIngredients
 (
     RecipeID SERIAL PRIMARY KEY,
-    IngredientsID VARCHAR(2048) NOT NULL
+    IngredientsID INT[] NOT NULL
 );
 
 CREATE TABLE MatrixFavorite
 (
     UserID SERIAL PRIMARY KEY,
-    RecipesID VARCHAR(2048) NOT NULL
+    RecipesID INT[] NOT NULL
 );
 
 
@@ -75,7 +75,7 @@ VALUES
        ('Молочные продукты'),
        ('Яйца'),
        ('Морепродукты'),
-       ('Мясо')
+       ('Мясо');
 
 INSERT INTO UnitMeasures (Name)
 VALUES
@@ -86,7 +86,7 @@ VALUES
        ('ст. л'),
        ('ч. л'),
        ('ст'),
-       ('по вкусу')
+       ('по вкусу');
 
 INSERT INTO Ingredients (Name, TypeId, UnitMeasureID)
 VALUES
@@ -94,35 +94,35 @@ VALUES
        ('Хлеб', 4, 1),
        ('Чеснок', 6, 8),
        ('Сливочное масло', 10, 2),
-       ('Растительное масло', 8, 8)
+       ('Растительное масло', 8, 8);
 
 INSERT INTO Cuisines (Name)
 VALUES
-       ('Домашняя')
+       ('Домашняя');
 
 INSERT INTO MatrixFavorite (RecipesID)
 VALUES
-       ('0;0;0'),
-       ('0;0;1')
+       (ARRAY [0,0,0]),
+       (ARRAY [0,0,1]);
 
 INSERT INTO MatrixFridge (IngredientsID)
 VALUES
-       ('0;0;0;0;0'),
-       ('0;0;0;0;0')
+       (ARRAY [0,0,0,0,0]),
+       (ARRAY [0,0,0,0,0]);
 
 INSERT INTO MatrixIngredients (IngredientsID)
 VALUES
-       ('30;1;0;0;1'),
-       ('30;1;10;0;1'),
-       ('0;1;0;1;1')
+       (ARRAY [30,1,0,0,1]),
+       (ARRAY [30,1,10,0,1]),
+       (ARRAY [0,1,0,1,1]);
 
 INSERT INTO Users (UserName, UserPassword)
 VALUES
        ('admin', 'adminadmin'),
-       ('Gleb', 'secretpassword')
+       ('Gleb', 'secretpassword');
 
 INSERT INTO Recipes (Name, Information, CuisineID, CountSteps, Steps)
 VALUES
-       ('Тост с сыром', 'Хрустящий хлеб с расплавленным сыром', 1, 2, 'Пожарить хлеб с двух сторон до хрустящей корочки;Положить на хлеб сыр'),
-       ('Тост с маслом и сыром', 'Хрустящий хлеб с маслом и расплавленным сыром', 1, 3, 'Пожарить хлеб с двух сторон до хрустящей корочки;Намазать хлеб маслом;Положить на хлеб сыр'),
-       ('Тост с чесноком', 'Хрустящий хлеб с ароматом чеснока', 1, 2, 'Пожарить хлеб с двух сторон до хрустящей корочки;Натереть хлеб отчищенным чесноком');
+       ('Тост с сыром', 'Хрустящий хлеб с расплавленным сыром', 1, 2, ARRAY ['Пожарить хлеб с двух сторон до хрустящей корочки','Положить на хлеб сыр']),
+       ('Тост с маслом и сыром', 'Хрустящий хлеб с маслом и расплавленным сыром', 1, 3, ARRAY ['Пожарить хлеб с двух сторон до хрустящей корочки','Намазать хлеб маслом','Положить на хлеб сыр']),
+       ('Тост с чесноком', 'Хрустящий хлеб с ароматом чеснока', 1, 2, ARRAY ['Пожарить хлеб с двух сторон до хрустящей корочки','Натереть хлеб отчищенным чесноком']);

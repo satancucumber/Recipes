@@ -1,9 +1,10 @@
 from peewee import *
+from playhouse.postgres_ext import *
 # docker run --name postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=postgres postgres:13.3
 
 #connection with database
 
-conn = PostgresqlDatabase(
+conn = PostgresqlExtDatabase(
             host="localhost",
             database="postgres",
             user="postgres",
@@ -48,7 +49,7 @@ class Recipe(BaseModel):
     inf = CharField(column_name='information', null=True)
     cuisineid = IntegerField(column_name='cuisineid')
     countsteps = IntegerField(column_name='countsteps')
-    steps = CharField(column_name='steps')
+    steps = ArrayField(column_name='steps')
     countlikes = IntegerField(column_name='countlikes')
     class Meta:
         table_name = 'recipes'
@@ -62,19 +63,19 @@ class User(BaseModel):
 
 class StrFridge(BaseModel):
     userid = AutoField(column_name='userid')
-    ingredientsid = CharField(column_name='ingredientsid')
+    ingredientsid = ArrayField(column_name='ingredientsid')
     class Meta:
         table_name = 'matrixfridge'
 
 class StrIngredient(BaseModel):
     recipeid = AutoField(column_name='recipeid')
-    ingredientsid = CharField(column_name='ingredientsid')
+    ingredientsid = ArrayField(column_name='ingredientsid')
     class Meta:
         table_name = 'matrixingredients'
 
 class StrFavorite(BaseModel):
     userid = AutoField(column_name='userid')
-    recipesid = CharField(column_name='recipesid')
+    recipesid = ArrayField(column_name='recipesid')
     class Meta:
         table_name = 'matrixfavorite'
 
@@ -109,58 +110,69 @@ def cnt(table):
 def fridge_to_matrix():
     query = StrFridge.select()
     str_selected = query.dicts().execute()
-    matrix = [[0]] * cnt("user")
+    matrix = [0] * cnt("user")
     for str in str_selected:
-        ingredientsid = list(map(int, str["ingredientsid"].split(';')))
-        matrix[str["userid"] - 1] = ingredientsid  # id start with 1; index start with 0
+        matrix[str["userid"] - 1] = str["ingredientsid"]  # id start with 1; index start with 0
     return matrix
+
 def ingredient_to_matrix():
     query = StrIngredient.select()
     str_selected = query.dicts().execute()
-    matrix = [[0]] * cnt("recipe")
+    matrix = [0] * cnt("recipe")
     for str in str_selected:
-        ingredientsid = list(map(int, str["ingredientsid"].split(';')))
-        matrix[str["recipeid"] - 1] = ingredientsid  # id start with 1; index start with 0
+        matrix[str["recipeid"] - 1] = str["ingredientsid"]  # id start with 1; index start with 0
     return matrix
+
 def favorite_to_matrix():
     query = StrFavorite.select()
     str_selected = query.dicts().execute()
-    matrix = [[0]]*cnt("user")
+    matrix = [0]*cnt("user")
     for str in str_selected:      # {"userid" : 1, "recipesid" :}
-        recipesid = list(map(int, str["recipesid"].split(';')))
-        matrix[str["userid"]-1] = recipesid   #id start with 1; index start with 0
+        matrix[str["userid"]-1] = str["recipesid"]   #id start with 1; index start with 0
     return matrix
 
 
-
 def new_user():
-    StrFridge.create(ingredientsid = ";".join(['0'] * cnt("ingredient")))
-    StrFavorite.create(recipesid = ";".join(['0'] * cnt("recipe")))
+    StrFridge.create(ingredientsid = [0] * cnt("ingredient"))
+    StrFavorite.create(recipesid = [0] * cnt("recipe"))
     return 0
-#new_user()
+
 def new_recipe(data): # data = "cnt_id;id;cnt;id;cnt;..."
     input = data.split(";")   # ["7", "1", "10", ...]
     cnt_id = int(input.pop(0))
-    new = ['0']*cnt("ingredient")  # ['0', ...]
+    new = [0]*cnt("ingredient")  # [0, ...]
     for i in range(cnt_id):
-        new[int(input[i*2])-1] = input[i*2+1]
-    StrIngredient.create(ingredientsid = ";".join(new))
-    query = StrFavorite.update(recipesid = StrFavorite.recipesid + ';0')  # добавляем новый рецепт в матрицу избранного
-    query.execute()
+        new[int(input[i*2])-1] = int(input[i*2+1])
+    StrIngredient.create(ingredientsid = new)
+    query = StrFavorite.select()
+    str_selected = query.dicts().execute()
+    for item in str_selected:
+        record = StrFavorite.get(StrFavorite.userid==item["userid"])
+        record.recipesid.append(0)
+        record.save()
     return 0
+
 def new_ingredient():
-    query = StrIngredient.update(ingredientsid=StrIngredient.ingredientsid + ";0")  # добавляем новый ингредиент в матрицу ингредиентов
-    query.execute()
-    query = StrFridge.update(ingredientsid=StrFridge.ingredientsid + ";0")  # добавляем новый ингредиент в матрицу холодильника
-    query.execute()
+    query = StrIngredient.select()
+    str_selected = query.dicts().execute()
+    for item in str_selected:
+        record = StrIngredient.get(StrIngredient.recipeid == item["recipeid"])
+        record.ingredientsid.append(0)
+        record.save()
+    query = StrFridge.select()
+    str_selected = query.dicts().execute()
+    for item in str_selected:
+        record = StrFridge.get(StrFridge.userid == item["userid"])
+        record.ingredientsid.append(0)
+        record.save()
     return 0
 
 def search_name(table, data):  # data = "name"
     query = object(table)
-    user_selected = query.dicts().execute()
-    for user in user_selected:
-        if user["name"] == data:
-            return user
+    table_selected = query.dicts().execute()
+    for value in table_selected:
+        if value["name"] == data:
+            return value
     return -1
 def search_id(table, data):  #data = int id
     query = object(table)

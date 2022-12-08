@@ -180,8 +180,6 @@ class recipe(Resource):
             return "Recipe post!"
         return "Such an recipe already exists!"
 
-
-
 class user(Resource):
     def get(self):
         query = User.select()
