@@ -99,26 +99,6 @@ class ingredient(Resource):
             Ingredient.create(name=data["name"], typeid=data["typeid"], unitmeasureid=data["unitmeasureid"])
             return "Ingredient post!"
         return "Such an ingredient already exists!"
-    '''
-    def patch(self):
-        data = request.get_json()   # {"ingredientid" : 6, "user_id" : 1, "recipe_id" : 2, "new_count" = 2}
-        if "ingredientid" in data:
-            if "user_id" in data and "new_count" in data:
-                fridge = fridge_to_matrix()[data["user_id"]]
-                str_user = list(map(str, fridge))
-                str_user[data["ingredientid"]-1] = str(data["new_count"])
-                string = StrFridge(userid=data["user_id"])
-                string.ingredientsid = ";".join(str_user)
-                string.save()
-                return "Ingredient changed!"
-            if "recipe_id" in data and "new_count" in data:
-                str = StrIngredient(userid=data["recipe_id"])
-                str_recipe = str.ingredientsid.split(";")
-                str_recipe[data["ingredientid"] - 1] = data["new_count"]
-                str.ingredientsid = ";".join(str_recipe)
-                str.save()
-                return "Ingredient changed!"
-    '''
 
 class cuisine(Resource):
     def get(self):
@@ -216,15 +196,13 @@ class user(Resource):
     def get(self):
         query = User.select()
         user_selected = query.dicts().execute()
-        id = request.args.get('id')
-        name = request.args.get('name')
-        password = request.args.get('password')
-        if id:
-            return search_id("user", int(id))        #record by id
-        elif name and password:
+        data = request.get_json()
+        if "id" in data :
+            return search_id("user", int(data["id"]))        #record by id
+        elif "name" in data and "password" in data:
             for user in user_selected:
-                if user["name"] == name:
-                    if user["password"] == password:
+                if user["name"] == data["name"]:
+                    if user["password"] == data["password"]:
                         return "You login!"
                     return "Invalid password!"
             return "Invalid username!"
