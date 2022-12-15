@@ -129,7 +129,29 @@ class recipe(Resource):
         recipe_selected = query.dicts().execute()
         output = []
         if id:
-            return search_id("recipe", int(id))         #record by id
+            record = Recipe.get(Recipe.id == id)
+            output.append(record.name)
+            output.append(record.inf)
+            recordcuisine = Cuisine.get(Cuisine.id == record.cuisineid)
+            output.append(recordcuisine.name)
+            ingredients = StrIngredient.get(StrIngredient.recipeid == id)
+            k = 0
+            ingred = []
+            for i in range(len(ingredients.ingredientsid)):
+                if ingredients.ingredientsid[i] != 0:
+                    k += 1
+                    ing = []
+                    recordingredients = Ingredient.get(Ingredient.id == i+1)
+                    ing.append(recordingredients.name)
+                    ing.append(ingredients.ingredientsid[i])
+                    recordunitmesure = UnitMeasure.get(UnitMeasure.id == recordingredients.unitmeasureid)
+                    ing.append(recordunitmesure.name)
+                    ingred.append(ing)
+            output.append(k)
+            output.append(ingred)
+            output.append(record.countsteps)
+            output.append(record.steps)
+            return output     #record by id
         if name and cuisine_id:
             for rec in recipe_selected:
                 if rec["cuisineid"] == int(cuisine_id) and name in rec["name"]:
