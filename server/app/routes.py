@@ -181,6 +181,37 @@ class recipe(Resource):
             return "Recipe post!"
         return "Such an recipe already exists!"
 
+    def patch(self):
+        id = request.args.get('id')
+        user_id = request.args.get('userid')
+        like = request.args.get('like')
+        dislike = request.args.get('dislike')
+
+        if user_id and id:
+            record = StrFavorite.get(StrFavorite.userid == int(user_id))
+            if like:
+                if record.recipesid[int(id)-1] == 0:
+                    record.recipesid[int(id) - 1] = 1
+                    record.save()
+                    return "Like put!"
+                else:
+                    record.recipesid[int(id) - 1] = 0
+                    record.save()
+                    return "Like unput!"
+            if dislike:
+                if record.recipesid[int(id)-1] == -1:
+                    record.recipesid[int(id) - 1] = 0
+                    record.save()
+                    return "Dislike unput!"
+                else:
+                    record.recipesid[int(id) - 1] = -1
+                    record.save()
+                    return "Dislike put!"
+            return "No information about like/dislike!"
+        return "No information about user and recipe!"
+
+
+
 class user(Resource):
     def get(self):
         query = User.select()
