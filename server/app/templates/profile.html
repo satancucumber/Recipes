@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p>
+    Имя пользователя: {{name}}
+</p>
+<p>
+    {{ form.hidden_tag() }}
+    {{ form.curr_pass.label() }}
+    {{ form.curr_pass() }}
+  </p>
+  <p>
+    {{ form.new_pass.label() }}
+    {{ form.new_pass() }}
+  </p>
+  <p>
+    {{ form.repeat_pass.label() }}
+    {{ form.repeat_pass() }}
+  </p>
+  <p>
+    {{ form.submit() }}
+  </p>
+{% endblock content %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <p>
+    {{ form.hidden_tag() }}
+    {{ form.name.label() }}
+    {{ form.name() }}
+  </p>
+  <p>
+    {{ form.pas.label() }}
+    {{ form.pas() }}
+  </p>
+  <p>
+    {{ form.repeat_pass.label() }}
+    {{ form.repeat_pass() }}
+  </p>
+  <p>
+    {{ form.submit() }}
+  </p>
+
+{% endblock content %}
