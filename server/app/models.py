@@ -184,15 +184,31 @@ def search_id(table, data):  #data = int id
 
 def search_substring(table, data):  # data = "name"
     query = object(table)
-    user_selected = query.dicts().execute()
+    table_selected = query.dicts().execute()
     output = []
-    for user in user_selected:
-        if data in  user["name"]:
-            output.append(user)
+    for value in table_selected:
+        if data in value["name"]:
+            output.append(value)
     if output != []:
         return output
     return -1
 
+def search_typeid(data):
+    query = Ingredient.select()
+    table_selected = query.dicts().execute()
+    output = []
+    for value in table_selected:
+        if value["typeid"] == int(data):
+            output.append(value)
+    if output != []:
+        return output
+    return -1
+
+def post_item(table, data):
+    if search_name(table, data["name"]) == -1:
+        table.create(name=data["name"])
+        return table, " post!"
+    return "Such ",  table, " already exists!"
 
 
 #def new_user_name(data): # {"name" = "Mila", "password" = }
