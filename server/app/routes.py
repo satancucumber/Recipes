@@ -1,13 +1,186 @@
-#from flask import Flask, render_template, session, redirect, url_for, escape, request, jsonify, abort
-from flask import Flask, jsonify, request, abort, render_template
+# from flask import Flask, render_template, session, redirect, url_for, escape, request, jsonify, abort
+# import flask
+from flask import Flask, jsonify, request, abort, render_template, Response, url_for, flash, redirect, session
 from server.app import app
-from flask_restful import Resource, Api, reqparse
+# from flask_restful import Resource, Api, reqparse
 from server.app.models import *
-api = Api(app)
+# import requests
+from flask_login import current_user, login_user
+from server.app.models import User
+from server.app.forms import LoginForm, RegistrationForm, EditPassForm, NewProductForm, TypeForm, ProductForm, AmountForm
+from flask_login import logout_user, login_required
+# import jinja2
+# from werkzeug.urls import url_parse
+# api = Api(app)
+
+def get_types_name():
+    out = []
+    query = Type.select()
+    type_selected = query.dicts().execute()
+    for type in type_selected:
+        out.append(type["name"])
+    return out
+
+
+def get_ingredients_name(ingredientsid):
+    out = []
+    for id in ingredientsid:
+        ingredient = Ingredient.get(Ingredient.id == id)
+        out.append(ingredient.name)
+    return out
+@app.route('/new_product1/<m>', methods=['GET', 'PATCH', 'POST'])
+def new_product2(m):
+    form3 = AmountForm()
+    ing = Ingredient.get(Ingredient.id==id)
+    unit = UnitMeasure.get(UnitMeasure.id == m)
+    unit1 = 'Укажите количество продукта в ' + unit.name
+    if form3.validate_on_submit():
+        try:
+            amount = form3.dataa.data
+            fridge = StrFridge.get(StrFridge.userid == current_user.id)
+            fridge.ingredientsid[ing.id-1] = amount
+            fridge.save()
+        except:
+            flash('Ошибка')
+        return redirect(url_for('fridge'))
+    return render_template('new_product.html', title='Добавление нового продукта в холодильник', mess=unit1,
+                           form=form3)
+@app.route('/new_product/<id>', methods=['GET', 'PATCH', 'POST'])
+def new_product1(id):
+    form2 = ProductForm()
+    type = Type.get(Type.id == id)
+    meow = get_ingredients_name(type.search_ingredients_id())
+    if form2.validate_on_submit():
+        try:
+            ing = Ingredient.get(Ingredient.name == form2.dataa.data)
+            m = ing.unitmeasureid
+        except:
+            flash('Неправильное название ингредиента')
+            return redirect(url_for('fridge'))
+        return redirect(url_for('new_product2', m=m))
+
+    return render_template('new_product.html', title='Добавление нового продукта в холодильник', data=meow,
+                           form=form2)
+
+
+@app.route('/new_product', methods=['GET', 'PATCH', 'POST'])
+def new_product():
+    form1 = TypeForm()
+    types = get_types_name()
+    if form1.validate_on_submit():
+        try:
+            type = Type.get(Type.name == form1.dataa.data)
+            id = type.id
+        except:
+            flash('Неправильно введено название типа продукта')
+            return redirect(url_for('fridge'))
+        return redirect(url_for('new_product1', id=id))
+    return render_template('new_product.html', title='Выбор типа нового продукта в холодильник', data=types, form=form1)
+
+
+def ingr():
+    fridge = StrFridge.get(StrFridge.userid == current_user.id)
+    fr = fridge.ingredientsid
+    ing = []
+    for i in range(len(fr)):
+        if fr[i] != 0:
+            ingr = Ingredient.get(Ingredient.id == i+1)
+            unit = UnitMeasure.get(UnitMeasure.id == ingr.unitmeasureid)
+            ing.append(ingr.name+' '+str(fr[i])+' '+unit.name)
+    return ing
+
+
+@app.route('/fridge', methods=['GET', 'POST', 'PATCH'])
+def fridge():
+    ing = ingr()
+    form = NewProductForm()
+    if form.validate_on_submit():
+        return redirect(url_for('new_product'))
+    return render_template('fridge.html', title='Холодильник', fridge=ing, form=form)
+
+
+
+
+@app.route('/')
+@app.route('/index')
+@login_required
+def index():
+    user = User.get(User.id == session['id'])
+    if len(user.likes) <= 5:
+        flash('Заполните холодильник, чтобы получить рекомедации')
+        return redirect(url_for('fridge'))
+    return render_template('main.html', title='Интеллектуальная система подборки рецептов')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        try:
+            user = User.get(User.name == form.username.data)
+        except:
+            user = None
+        if user is None or not user.check_password(form.password.data):
+            flash('Invalid username or password')
+            return redirect(url_for('login'))
+        login_user(user, remember=form.remember_me.data)
+        session['id'] = user.id
+        return redirect(url_for('index'))
+    return render_template('login.html', title='Вход', form=form)
+
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/registration', methods = ['GET', 'POST'])
+def registration():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        new_user()
+        User.create(name=form.username.data, password_hash='fssfsf')
+        user = User.get(User.name == form.username.data)
+        user.set_password(form.password.data)
+        user.save()
+        flash('Поздравляю, вы успешно зарегистрировались!')
+        return redirect(url_for('login'))
+    return render_template('registration.html', title='Регистрация', form=form)
+
+@app.route('/user', methods = ['GET', 'POST'])
+@login_required
+def user():
+    form = EditPassForm()
+    user = User.get(name=current_user.name)
+    if form.validate_on_submit():
+        if user.check_password(form.curr_pass.data):
+            user.set_password(form.new_pass.data)
+            user.save()
+            flash('Смена пароля произошла успешно')
+            return redirect(url_for('user'))
+        else:
+            flash('Текущий пароль введен неверно')
+    return render_template('user.html', user=user, form=form, title='Профиль')
+
+
+'''
 
 class index(Resource):
     def get(self):
-        return "Hello, Word!"
+        form = LoginForm()
+        print(form.name.data, ' ', form.password.data)
+        if form.validate_on_submit():
+            url = "http://127.0.0.1:5000/api/v1/login"
+            request = {"name": form.name.data, "password": form.password.data}
+            print(request)
+            r = requests.get(url, json=request)
+            if r == '<Response [200]>':
+                return redirect(url_for('api/v1/login'))
+        return Response(render_template('base.html'),mimetype='text/html')
 
 class type(Resource):
     def get(self):
@@ -285,7 +458,7 @@ api.add_resource(cuisine, '/api/v1/cuisine', endpoint='cuisine')
 api.add_resource(unitmeasure, '/api/v1/unitmeasure', endpoint='unitmeasure')
 #api.add_resource(recimendation, '/api/v1/recimendation', endpoint='recimendation')
 
-'''
+
 @app.route('/')
 def index():
     if 'username' in session:
@@ -297,16 +470,16 @@ def login():
     if request.method == 'POST':
         session['username'] = request.form['username']
         return redirect(url_for('index'))
-    return '''
-'''
+    return 
+
         <form action="" method="post">
             <p><input type=text name=username>
             <p><input type=submit value=Login>
         </form>
         
-'''
 
-'''
+
+
 
 @app.route('/logout')
 def logout():

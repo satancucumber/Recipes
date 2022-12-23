@@ -1,7 +1,7 @@
 import requests
 url = "http://127.0.0.1:5000/api/v1/login"
-request = {"name" : "Mila", "password" : "ilikekittys", "repeat" : "ilikekittys"}  #  "recipe_id" : 2,
-r = requests.post(url, json=request)
+request = {"name" : "admin", "password" : "adminadmin"}  #  "recipe_id" : 2,
+r = requests.get(url, json=request)
 
 print(r.content.decode())
 print(r)

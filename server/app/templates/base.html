@@ -1,20 +1,15 @@
-<!doctype html>
-<html>
-    <head>
-        {% if title %}
-        <title>{{ title }} - Microblog</title>
-        {% else %}
-        <title>Welcome to Microblog</title>
-        {% endif %}
-    </head>
-    <body>
-        <div>
-            SmartRecipes:
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('login') }}">Login</a>
-        </div>
-        <hr>
-        {% with messages = get_flashed_messages() %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}{{ title }}{% endblock title %}</title>
+</head>
+    <a href="{{ url_for('index') }}">Главная</a>
+    <a href="{{ url_for('fridge') }}">Холодильник</a>
+    <a href="{{ url_for('user')}}">Профиль</a>
+    <a href="{{ url_for('logout') }}">Выход</a>
+    <h2>{{ title }}!</h2>
+  {% with messages = get_flashed_messages() %}
         {% if messages %}
         <ul>
             {% for message in messages %}
@@ -22,7 +17,8 @@
             {% endfor %}
         </ul>
         {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
-    </body>
+  {% endwith %}
+  {% block content %} {% endblock content %}
+<body>
+</body>
 </html>

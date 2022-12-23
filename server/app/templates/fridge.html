@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-{% for ing in frdge %}
+<form action="" method="post">
+            {{ form.hidden_tag() }}
+        <p>{{ form.submit() }}</p>
+</form>
+{% for ing in fridge %}
 <div><p>{{ing}}</p></div>
-{% endfor %}}
+{% endfor %}
 
 {% endblock content %}

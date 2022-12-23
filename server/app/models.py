@@ -1,5 +1,9 @@
-
+from werkzeug.security import generate_password_hash, check_password_hash
 from playhouse.postgres_ext import *
+from flask_login import UserMixin
+from server.app import login
+
+
 # docker run --name postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=postgres postgres:13.3
 
 #connection with database
@@ -17,12 +21,6 @@ class BaseModel(Model):
     class Meta:
         database = conn
 
-class Type(BaseModel):
-    id = AutoField(column_name='id')
-    name = CharField(column_name='name')
-    class Meta:
-        table_name = 'types'
-
 class UnitMeasure(BaseModel):
     id = AutoField(column_name='id')
     name = CharField(column_name='name')
@@ -37,11 +35,18 @@ class Ingredient(BaseModel):
     class Meta:
         table_name = 'ingredients'
 
-class Cuisine(BaseModel):
+class Type(BaseModel):
     id = AutoField(column_name='id')
     name = CharField(column_name='name')
     class Meta:
-        table_name = 'cuisines'
+        table_name = 'types'
+    def search_ingredients_id(self):
+        ingredientsid = []
+        query = Ingredient.select().where(Ingredient.typeid == self.id)
+        ingredient_selected = query.dicts().execute()
+        for ingredient in ingredient_selected:
+            ingredientsid.append(ingredient["id"])
+        return(ingredientsid)
 
 class Recipe(BaseModel):
     id = AutoField(column_name='id')
@@ -54,18 +59,41 @@ class Recipe(BaseModel):
     class Meta:
         table_name = 'recipes'
 
-class User(BaseModel):
+class Cuisine(BaseModel):
+    id = AutoField(column_name='id')
+    name = CharField(column_name='name')
+    class Meta:
+        table_name = 'cuisines'
+    def search_recipes_id(self):
+        recipesid = []
+        query = Recipe.select().where(Recipe.cuisineid == self.id)
+        recipe_selected = query.dicts().execute()
+        for recipe in recipe_selected:
+            recipesid.append(recipe["id"])
+        return (recipesid)
+
+class User(UserMixin, BaseModel):
     id = AutoField(column_name='id')
     name = CharField(column_name='username')
-    password = CharField(column_name='userpassword')
+    password_hash = CharField(column_name='userpassword')
+    likes = ArrayField(column_name='likes')
     class Meta:
         table_name = 'users'
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+
 
 class StrFridge(BaseModel):
     userid = AutoField(column_name='userid')
     ingredientsid = ArrayField(column_name='ingredientsid')
     class Meta:
         table_name = 'matrixfridge'
+
 
 class StrIngredient(BaseModel):
     recipeid = AutoField(column_name='recipeid')
@@ -167,6 +195,7 @@ def new_ingredient():
         record.save()
     return 0
 
+
 def search_name(table, data):  # data = "name"
     query = object(table)
     table_selected = query.dicts().execute()
@@ -174,6 +203,8 @@ def search_name(table, data):  # data = "name"
         if value["name"] == data:
             return value
     return -1
+
+
 def search_id(table, data):  #data = int id
     query = object(table)
     table_selected = query.dicts().execute()
@@ -181,6 +212,7 @@ def search_id(table, data):  #data = int id
         if value["id"] == data:
             return value
     return -1
+
 
 def search_substring(table, data):  # data = "name"
     query = object(table)
@@ -194,12 +226,38 @@ def search_substring(table, data):  # data = "name"
     return -1
 
 
+@login.user_loader
+def load_user(id):
+    try:
+        return User.get(User.id == int(id))
+    except:
+        return None
+
+
+def search_ingredients_id_by_name(name):
+    ingredientsid = []
+    query = Ingredient.select()
+    ingredient_selected = query.dicts().execute()
+    for ingredient in ingredient_selected:
+        if name in ingredient["name"]:
+            ingredientsid.append(ingredient["id"])
+    return ingredientsid
+
+
+def search_recipes_id_by_name(name):
+    recipesid = []
+    query = Recipe.select()
+    recipe_selected = query.dicts().execute()
+    for recipe in recipe_selected:
+        if name in recipe["name"]:
+            recipesid.append(recipe["id"])
+    return recipesid
+
+# print(search_recipes_id_by_name("Соба"))
 
 #def new_user_name(data): # {"name" = "Mila", "password" = }
 
 #print(Recipe.get(Recipe.id == 1))
-
-
 
 #print(favorite_to_matrix())
 
