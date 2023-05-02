@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+{{mess}}
+{% for ing in data %}
+<div><p>{{ing}}</p></div>
+{% endfor %}
+    <form action="" method="post"  novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.dataa.label }}<br>
+            {{ form.dataa(size=32) }}<br>
+        </p>
+        <p>
+            {{ form.amount.label }}<br>
+            {{ form.amount(size=32) }}<br>
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock content %}

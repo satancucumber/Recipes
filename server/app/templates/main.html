@@ -5,8 +5,9 @@
 {% if current_user.is_anonymous %}
     <a href="{{ url_for('login') }}">Вход</a>
     {% endif %}
-{% for ing in rec %}
-<div><p>{{ing}}</p></div>
+{% for ing in gav %}
+<div><h3>{{ing[0]}}</h3>
+<p>{{ing[1]}}</p></div>
 {% endfor %}
 
 {% endblock content %}

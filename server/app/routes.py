@@ -1,5 +1,5 @@
-# from flask import Flask, render_template, session, redirect, url_for, escape, request, jsonify, abort
 # import flask
+"""
 from flask import Flask, jsonify, request, abort, render_template, Response, url_for, flash, redirect, session
 from server.app import app
 # from flask_restful import Resource, Api, reqparse
@@ -7,11 +7,15 @@ from server.app.models import *
 # import requests
 from flask_login import current_user, login_user
 from server.app.models import User
-from server.app.forms import LoginForm, RegistrationForm, EditPassForm, NewProductForm, TypeForm, ProductForm, AmountForm
+from server.app.forms import LoginForm, RegistrationForm, EditPassForm, NewProductForm, TypeForm, ProductForm
 from flask_login import logout_user, login_required
+from server.app.recommendation import rec_recipes_id
+
+
 # import jinja2
 # from werkzeug.urls import url_parse
 # api = Api(app)
+
 
 def get_types_name():
     out = []
@@ -28,23 +32,18 @@ def get_ingredients_name(ingredientsid):
         ingredient = Ingredient.get(Ingredient.id == id)
         out.append(ingredient.name)
     return out
-@app.route('/new_product1/<m>', methods=['GET', 'PATCH', 'POST'])
-def new_product2(m):
-    form3 = AmountForm()
-    ing = Ingredient.get(Ingredient.id==id)
-    unit = UnitMeasure.get(UnitMeasure.id == m)
-    unit1 = 'Укажите количество продукта в ' + unit.name
-    if form3.validate_on_submit():
-        try:
-            amount = form3.dataa.data
-            fridge = StrFridge.get(StrFridge.userid == current_user.id)
-            fridge.ingredientsid[ing.id-1] = amount
-            fridge.save()
-        except:
-            flash('Ошибка')
-        return redirect(url_for('fridge'))
-    return render_template('new_product.html', title='Добавление нового продукта в холодильник', mess=unit1,
-                           form=form3)
+
+
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    return render_template('search.html', title='Выберите параметр поиска')
+
+
+@app.route('/recipe/<id>', methods=['GET'])
+def recipe_1(id):
+    return render_template('recipe.html', title='Страница рецепта')
+
+
 @app.route('/new_product/<id>', methods=['GET', 'PATCH', 'POST'])
 def new_product1(id):
     form2 = ProductForm()
@@ -53,13 +52,15 @@ def new_product1(id):
     if form2.validate_on_submit():
         try:
             ing = Ingredient.get(Ingredient.name == form2.dataa.data)
-            m = ing.unitmeasureid
+            amount = form2.amount.data
+            fridge = StrFridge.get(StrFridge.userid == current_user.id)
+            fridge.ingredientsid[ing.id - 1] = amount
+            fridge.save()
+            flash('Успешно добавлено')
         except:
             flash('Неправильное название ингредиента')
-            return redirect(url_for('fridge'))
-        return redirect(url_for('new_product2', m=m))
-
-    return render_template('new_product.html', title='Добавление нового продукта в холодильник', data=meow,
+        return redirect(url_for('fridge'))
+    return render_template('new_product1.html', title='Добавление нового продукта в холодильник', data=meow,
                            form=form2)
 
 
@@ -84,13 +85,13 @@ def ingr():
     ing = []
     for i in range(len(fr)):
         if fr[i] != 0:
-            ingr = Ingredient.get(Ingredient.id == i+1)
+            ingr = Ingredient.get(Ingredient.id == i + 1)
             unit = UnitMeasure.get(UnitMeasure.id == ingr.unitmeasureid)
-            ing.append(ingr.name+' '+str(fr[i])+' '+unit.name)
+            ing.append(ingr.name + ' ' + str(fr[i]) + ' ' + unit.name)
     return ing
 
 
-@app.route('/fridge', methods=['GET', 'POST', 'PATCH'])
+@app.route('/fridge', methods=['GET', 'POST'])
 def fridge():
     ing = ingr()
     form = NewProductForm()
@@ -99,6 +100,21 @@ def fridge():
     return render_template('fridge.html', title='Холодильник', fridge=ing, form=form)
 
 
+def fridge_count():
+    fridge = StrFridge.get(StrFridge.userid == current_user.id)
+    k = 0
+    for i in range(len(fridge.ingredientsid)):
+        if fridge.ingredientsid[i] != 0:
+            k += 1
+    return k
+
+
+def get_recipes_name_and_inf(recipesid):
+    out = []
+    for id in recipesid:
+        recipe = Recipe.get(Recipe.id == id)
+        out.append([recipe.name, recipe.inf])
+    return out
 
 
 @app.route('/')
@@ -106,10 +122,11 @@ def fridge():
 @login_required
 def index():
     user = User.get(User.id == session['id'])
-    if len(user.likes) <= 5:
+    if len(user.likes) <= 5 and fridge_count() <= 5:
         flash('Заполните холодильник, чтобы получить рекомедации')
         return redirect(url_for('fridge'))
-    return render_template('main.html', title='Интеллектуальная система подборки рецептов')
+    gav = get_recipes_name_and_inf(rec_recipes_id(session['id']))
+    return render_template('main.html', title='Интеллектуальная система подборки рецептов', gav=gav)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -136,7 +153,8 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-@app.route('/registration', methods = ['GET', 'POST'])
+
+@app.route('/registration', methods=['GET', 'POST'])
 def registration():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
@@ -151,7 +169,8 @@ def registration():
         return redirect(url_for('login'))
     return render_template('registration.html', title='Регистрация', form=form)
 
-@app.route('/user', methods = ['GET', 'POST'])
+
+@app.route('/user', methods=['GET', 'POST'])
 @login_required
 def user():
     form = EditPassForm()
@@ -167,7 +186,15 @@ def user():
     return render_template('user.html', user=user, form=form, title='Профиль')
 
 
-'''
+@app.route('/favorites')
+@login_required
+def favorites():
+    user = User.get(User.id == session['id'])
+    gav = get_recipes_name_and_inf(user.likes)
+    return render_template('favorites.html', title='Избранное', gav=gav)
+
+
+
 
 class index(Resource):
     def get(self):
@@ -470,13 +497,13 @@ def login():
     if request.method == 'POST':
         session['username'] = request.form['username']
         return redirect(url_for('index'))
-    return 
+    return
 
         <form action="" method="post">
             <p><input type=text name=username>
             <p><input type=submit value=Login>
         </form>
-        
+
 
 
 
@@ -490,6 +517,107 @@ def logout():
 # set the secret key.  keep this really secret:
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 
-'''
+"""
+from flask import Flask, render_template, flash, redirect, url_for
+from server.app.forms import SearchForm
+from server.app.models import *
+from server.app import app
 
 
+# app = Flask(__name__)
+
+
+def search_person(gender, age, activity):
+    global pers
+    for i in range(1, 10):
+        pers = Person.get(Person.id == i)
+        if pers.gender == gender:
+            if pers.age == age:
+                if pers.type == activity:
+                    return pers.id
+    return 0
+
+
+def get_inf_from_id0(idd):
+    if Person.get(Person.id == idd).gender == 'М':
+        gender = 'мальчика'
+    else:
+        gender = 'девочки'
+    if Person.get(Person.id == idd).age == '1':
+        res = 'Рацион для ' + gender + ' возрастом ' + Person.get(Person.id == idd).age + ' год '
+    else:
+        if ((Person.get(Person.id == idd).age == '2') | (Person.get(Person.id == idd).age == '3') | (
+                Person.get(Person.id == idd).age == '4')):
+            res = 'Рацион для ' + gender + ' возрастом ' + Person.get(Person.id == idd).age + ' года'
+        else:
+            res = 'Рацион для ' + gender + ' возрастом ' + Person.get(Person.id == idd).age + ' лет'
+    return res
+
+def get_inf_from_id1(idd):
+    res = []
+    res.append(Person.get(Person.id == idd).type + ' физическая активность')
+    res.append('Суточная норма калорий: ' + str(Person.get(Person.id == idd).calories) + ' ккал')
+    res.append('Белки:' + str(Person.get(Person.id == idd).protein) + 'г')
+    res.append('Жиры:' + str(Person.get(Person.id == idd).fat) + 'г')
+    res.append('Углеводы:' + str(Person.get(Person.id == idd).carbon) + 'г')
+    res.append('Витамин А:' + Person.get(Person.id == idd).vita + 'г')
+    res.append('Витамин С:' + Person.get(Person.id == idd).vitc + 'г')
+    res.append('Завтрак:')
+    for i in range(Rations.get(Rations.id == Person.get(Person.id == idd).rationid).countbr):
+        res.append(Dishes.get(
+            Dishes.id == Rations.get(Rations.id == Person.get(Person.id == idd).rationid).breakf[i]).name + ', ' + str(
+            Dishes.get(Dishes.id == Rations.get(Rations.id == Person.get(Person.id == idd).rationid).breakf[
+                i]).weight) + 'гр, ' + str(Dishes.get(
+            Dishes.id == Rations.get(Rations.id == Person.get(Person.id == idd).rationid).breakf[
+                i]).caloriesd) + 'ккал.')
+    res.append('Обед:')
+    for i in range(Rations.get(Rations.id == Person.get(Person.id == idd).rationid).countl):
+        res.append(Dishes.get(
+            Dishes.id == Rations.get(Rations.id == Person.get(Person.id == idd).rationid).lunch[i]).name + ', ' + str(
+            Dishes.get(Dishes.id == Rations.get(Rations.id == Person.get(Person.id == idd).rationid).lunch[
+                i]).weight) + 'гр, ' + str(Dishes.get(
+            Dishes.id == Rations.get(Rations.id == Person.get(Person.id == idd).rationid).lunch[
+                i]).caloriesd) + 'ккал.')
+    res.append('Полдник:')
+    for i in range(Rations.get(Rations.id == Person.get(Person.id == idd).rationid).countp):
+        res.append(Dishes.get(
+            Dishes.id == Rations.get(Rations.id == Person.get(Person.id == idd).rationid).poldnik[i]).name + ', ' + str(
+            Dishes.get(Dishes.id == Rations.get(Rations.id == Person.get(Person.id == idd).rationid).poldnik[
+                i]).weight) + 'гр, ' + str(Dishes.get(
+            Dishes.id == Rations.get(Rations.id == Person.get(Person.id == idd).rationid).poldnik[
+                i]).caloriesd) + 'ккал.')
+    res.append('Ужин:')
+    for i in range(Rations.get(Rations.id == Person.get(Person.id == idd).rationid).countd):
+        res.append(Dishes.get(
+            Dishes.id == Rations.get(Rations.id == Person.get(Person.id == idd).rationid).dinner[i]).name + ', ' + str(
+            Dishes.get(Dishes.id == Rations.get(Rations.id == Person.get(Person.id == idd).rationid).dinner[
+                i]).weight) + 'гр, ' + str(Dishes.get(
+            Dishes.id == Rations.get(Rations.id == Person.get(Person.id == idd).rationid).dinner[
+                i]).caloriesd) + 'ккал.')
+    return res
+
+
+@app.route('/search/<id>', methods=['GET', 'POST', 'PATCH'])
+def search(id):
+    dataa = get_inf_from_id0(id)
+    dataa1 = get_inf_from_id1(id)
+    return render_template('search.html', title='Результаты поиска', data=dataa, data1=dataa1)
+
+
+@app.route('/', methods=['GET', 'PATCH', 'POST'])
+@app.route('/index', methods=['GET', 'PATCH', 'POST'])
+def index():  # put application's code here
+    form1 = SearchForm()
+    if form1.validate_on_submit():
+        try:
+            gender = form1.gender.data
+            age = form1.age.data
+            activity = form1.activity.data
+            print(gender)
+            print(age)
+            print(activity)
+            per = int(search_person(gender, age, activity))
+            return redirect(url_for('search', id=per))
+        except:
+            flash("Такого рациона пока нет :(")
+    return render_template('index.html', title='Рационы питания для людей от 2 до 60 лет', form=form1)

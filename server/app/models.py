@@ -1,9 +1,6 @@
-from werkzeug.security import generate_password_hash, check_password_hash
-from playhouse.postgres_ext import *
-from flask_login import UserMixin
-from server.app import login
 
 
+'''
 # docker run --name postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=postgres postgres:13.3
 
 #connection with database
@@ -270,6 +267,61 @@ def search_recipes_id_by_name(name):
 #user.save()
 
 #user = User.get(User.id == 3)
-#print(user)
+#print(user) '''
+from playhouse.postgres_ext import *
+
+conn = PostgresqlExtDatabase(
+            host="localhost",
+            database="postgres",
+            user="postgres",
+            port="5432",
+            password="mysecretpassword")
+
+
+class BaseModel(Model):
+    class Meta:
+        database = conn
+
+
+class Dishes(BaseModel):
+    id = AutoField(column_name='id')
+    name = CharField(column_name='name')
+    weight = IntegerField(column_name='weight')
+    caloriesd = IntegerField(column_name='caloriesd')
+
+    class Meta:
+        table_name = 'dishes'
+
+
+class Rations(BaseModel):
+    id = AutoField(column_name='id')
+    countbr = IntegerField(column_name='countbr')
+    breakf = ArrayField(column_name='breakf')
+    countl = IntegerField(column_name='countl')
+    lunch = ArrayField(column_name='lunch')
+    countp = IntegerField(column_name='countp')
+    poldnik = ArrayField(column_name='poldnik')
+    countd = IntegerField(column_name='countd')
+    dinner = ArrayField(column_name='dinner')
+
+    class Meta:
+        table_name = 'rations'
+
+
+class Person(BaseModel):
+    id = AutoField(column_name='id')
+    age = CharField(column_name='age')
+    gender = CharField(column_name='gender')
+    type = CharField(column_name='type')
+    calories = IntegerField(column_name='calories')
+    protein = IntegerField(column_name='protein')
+    fat = IntegerField(column_name='fat')
+    carbon = IntegerField(column_name='carbon')
+    vita = CharField(column_name='vita')
+    vitc = CharField(column_name='vitc')
+    rationid = IntegerField(column_name='rationid')
+
+    class Meta():
+        table_name = 'person'
 
 

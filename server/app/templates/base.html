@@ -1,24 +1,20 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8">
-  <title>{% block title %}{{ title }}{% endblock title %}</title>
-</head>
-    <a href="{{ url_for('index') }}">Главная</a>
-    <a href="{{ url_for('fridge') }}">Холодильник</a>
-    <a href="{{ url_for('user')}}">Профиль</a>
-    <a href="{{ url_for('logout') }}">Выход</a>
-    <h2>{{ title }}!</h2>
-  {% with messages = get_flashed_messages() %}
+{% extends 'bootstrap/base.html' %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
         {% if messages %}
-        <ul>
             {% for message in messages %}
-            <li>{{ message }}</li>
+            <div class="alert alert-info" role="alert">{{ message }}</div>
             {% endfor %}
-        </ul>
         {% endif %}
-  {% endwith %}
-  {% block content %} {% endblock content %}
-<body>
-</body>
-</html>
+        {% endwith %}
+
+        {# содержимое приложения которое должно быть предоставлено в блоке app_content #}
+        {% block app_content %}{% endblock %}
+    </div>
+{% endblock %}
